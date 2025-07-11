@@ -1,4 +1,4 @@
-name: Build Kernel lmi test
+name: Build Kernel test
 permissions:
   contents: write
   actions: write
@@ -13,7 +13,19 @@ on:
         default: 'lmi'
         options:
           - 'lmi'
+          - 'umi'
+          - 'cmi'
           - 'cas'
+          - 'thyme'
+          - 'munch'
+          - 'dagu'
+          - 'elish'
+          - 'enuma'
+          - 'alioth'
+          - 'apollo'
+          - 'psyche'
+          - 'pipa'
+          - 'all'
       compiled_system:
         description: 'Applicable systems (适用系统)'
         required: true
