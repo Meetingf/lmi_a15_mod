@@ -109,12 +109,11 @@ jobs:
 
       - name: Download Proton Clang Toolchain
         run: |
-          mkdir -p "$TOOLCHAIN_DIR/clang"
-          cd "$TOOLCHAIN_DIR/clang"
+          mkdir -p $HOME/proton-clang
+          cd $HOME/proton-clang
           wget https://github.com/kdrag0n/proton-clang/archive/refs/tags/20210522.zip
           unzip 20210522.zip
-          mv proton-clang-20210522 proton-clang
-          rm proton-clang/bin/ld 20210522.zip
+          rm 20210522.zip
 
       - name: Cache ccache
         uses: actions/cache@v4
@@ -133,7 +132,7 @@ jobs:
       - name: Build Kernel
         run: |
           cd $KERNEL_SOURCE
-          sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$TOOLCHAIN_DIR/clang/proton-clang/bin|' build.sh
+          #sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$TOOLCHAIN_DIR/clang/proton-clang/bin|' build.sh
           DEVICE="${{ github.event.inputs.target_devices }}"
           KSU_enable="${{ github.event.inputs.kernelsu_enable }}"
           VERSION="${{ github.event.inputs.kernel_version }}"
