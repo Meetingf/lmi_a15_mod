@@ -32,7 +32,7 @@ on:
         type: choice
         default: 'disable'
         options:
-          - 'enable'
+          - 'ksu'
           - 'disable'
       kernel_version:
         description: 'Customizing the kernel version number (自定义内核版本号)'
