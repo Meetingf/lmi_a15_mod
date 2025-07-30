@@ -166,8 +166,26 @@ jobs:
           fi
 
           bash build.sh "$DEVICE" "$KSU_enable"
-          mkdir -p $WORKDIR/out
-          mv ./Kernel_*.zip $WORKDIR/out
+
+          # 创建输出目录（包括父目录）
+          mkdir -p "${WORKDIR}/out" || {
+              echo "无法创建目录：${WORKDIR}/out" >&2
+              exit 1
+          }
+
+          # 检查 ZIP 文件是否存在
+          if ! compgen -G ./Kernel_*.zip > /dev/null; then
+              echo "警告：未找到 Kernel_*.zip 文件，跳过移动操作" >&2
+              exit 0
+          fi
+
+          # 移动所有匹配的 ZIP 文件
+         mv -v ./Kernel_*.zip "${WORKDIR}/out/" || {
+              echo "移动文件时出错" >&2
+              exit 1
+          }
+
+          echo "操作成功完成！"
 
       - name: 📤 Upload compilation results (上传编译结果)
         uses: actions/upload-artifact@v4
