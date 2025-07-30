@@ -77,8 +77,6 @@ jobs:
       CCACHE_NOHASHDIR: "true"
       CCACHE_HARDLINK: "true"
       WORKDIR: "${{ github.workspace }}"
-      KERNEL_SOURCE: "${{ github.workspace }}/kernel_source"
-      TOOLCHAIN_DIR: "${{ github.workspace }}/toolchain"
       DEVICE: "${{ matrix.device }}"
 
     steps:
@@ -134,12 +132,12 @@ jobs:
       - name: 📥 Cloning kernel source code (克隆内核源码)
         run: |
           echo "正在克隆内核源码..."
-          git clone https://github.com/liyafe1997/kernel_xiaomi_sm8250_mod.git --depth=1 $KERNEL_SOURCE
+          git clone https://github.com/liyafe1997/kernel_xiaomi_sm8250_mod.git --depth=1 $WORKDIR
           echo "✅ Kernel source code cloning complete (内核源码克隆完成)"
 
       - name: Build Kernel
         run: |
-          sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$(pwd)/toolchain/proton-clang/bin|' build.sh
+          sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$(pwd)/toolchain/proton-clang/bin|' "$WORKDIR/build.sh"
           DEVICE="${{ github.event.inputs.target_device }}"
           KSU_enable="${{ github.event.inputs.kernelsu_enable }}"
           VERSION="${{ github.event.inputs.kernel_version }}"
@@ -147,19 +145,19 @@ jobs:
           # 修改内核版本号
           if [ ! -z "$VERSION" ]; then
               echo "🔧 设置自定义内核版本: $VERSION"
-              sed -i "s/-dirty/-$VERSION/g" scripts/setlocalversion
+              sed -i "s/-dirty/-$VERSION/g" "$WORKDIR/scripts/setlocalversion"
           else
               GIT_COMMIT_SHORT=$(git rev-parse --short=13 HEAD)
               echo "🔧 使用默认版本"
-              sed -i "s/-dirty/-${GIT_COMMIT_SHORT}-${DEVICE}/g" scripts/setlocalversion
-              sed -i "s/echo \"\$res\"/echo \"-perf-${GIT_COMMIT_SHORT}-${DEVICE}\"/g" "$KERNEL_SOURCE/scripts/setlocalversion"
+              sed -i "s/-dirty/-${GIT_COMMIT_SHORT}-${DEVICE}/g" "$WORKDIR/scripts/setlocalversion"
+              sed -i "s/echo \"\$res\"/echo \"-perf-${GIT_COMMIT_SHORT}-${DEVICE}\"/g" "$WORKDIR/scripts/setlocalversion"
           fi
 
           FULL_VERSION="$VERSION"
           if [ ! -z "$FULL_VERSION" ]; then
             main_version=$(echo "$FULL_VERSION" | grep -oE '^[0-9]+(\.[0-9]+)*')
             custom_part=$(echo "$FULL_VERSION" | grep -oE '(-[a-zA-Z0-9]+)*$')
-            makefile_path="$KERNEL_SOURCE/Makefile"
+            makefile_path="$WORKDIR//Makefile"
             IFS='.' read -ra version_parts <<< "$main_version"
             sed -i "2s/.*/VERSION = ${version_parts[0]}/" "$makefile_path"
             if [ -n "${version_parts[1]}" ]; then
@@ -169,21 +167,16 @@ jobs:
               sed -i "4s/.*/SUBLEVEL = ${version_parts[2]}/" "$makefile_path"
             fi
 
-            sed -i "s/echo \"\$res\"/echo \"${custom_part}\"/g" "$KERNEL_SOURCE/scripts/setlocalversion"
+            sed -i "s/echo \"\$res\"/echo \"${custom_part}\"/g" "$WORKDIR//scripts/setlocalversion"
           fi
 
           bash build.sh "$DEVICE" "$KSU_enable"
 
       - name: Set Kernel Path
         run: |
-          if [[ "${{ github.event.inputs.system_version }}" == "aosp" || "${{ github.event.inputs.system_version }}" == "miui" ]]; then
-              KernelPath=$(ls Kernel_* 2>/dev/null || true)
-              echo "KernelPath=$(pwd)/$KernelPath" >> $GITHUB_ENV
-          else
-              tar -czvf Kernel_All.tar.gz Kernel_*
-              KernelPath=$(pwd)/Kernel_All.tar.gz
-              echo "KernelPath=$KernelPath" >> $GITHUB_ENV
-          fi
+            tar -czvf Kernel_All.tar.gz Kernel_*
+            KernelPath=$(pwd)/Kernel_All.tar.gz
+            echo "KernelPath=$KernelPath" >> $GITHUB_ENV
       
       - name: Upload Kernel
         uses: actions/upload-artifact@v4
