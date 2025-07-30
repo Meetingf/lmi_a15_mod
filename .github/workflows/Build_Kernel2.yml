@@ -78,6 +78,7 @@ jobs:
       CCACHE_HARDLINK: "true"
       WORKDIR: "${{ github.workspace }}"
       KERNEL_SOURCE: "${{ github.workspace }}/kernel_source"
+      TOOLCHAIN_DIR: "${{ github.workspace }}/toolchain"
       DEVICE: "${{ matrix.device }}"
 
     steps:
@@ -105,23 +106,16 @@ jobs:
           build-essential git curl wget bison flex zip bc \
           cpio libssl-dev libncurses-dev gcc \
           python3 python3-pip ccache
-            
-      - name: Cache Proton Clang
-        uses: actions/cache@v4
-        id: clang-cache
-        with:
-          path: toolchain/proton-clang
-          key: ${{ runner.os }}-proton-clang
 
       - name: Download Proton Clang Toolchain
-        if: steps.clang-cache.outputs.cache-hit != 'true'
         run: |
-          mkdir -p toolchain; cd toolchain
+          mkdir -p "$TOOLCHAIN_DIR/clang"
+          cd "$TOOLCHAIN_DIR/clang"
           wget https://github.com/kdrag0n/proton-clang/archive/refs/tags/20210522.zip
           unzip 20210522.zip
           mv proton-clang-20210522 proton-clang
           rm proton-clang/bin/ld 20210522.zip
-          
+
       - name: Cache ccache
         uses: actions/cache@v4
         with:
@@ -139,7 +133,7 @@ jobs:
       - name: Build Kernel
         run: |
           cd $KERNEL_SOURCE
-          sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$(pwd)/toolchain/proton-clang/bin|' build.sh
+          sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$TOOLCHAIN_DIR/clang/bin|' build.sh
           DEVICE="${{ github.event.inputs.target_devices }}"
           KSU_enable="${{ github.event.inputs.kernelsu_enable }}"
           VERSION="${{ github.event.inputs.kernel_version }}"
