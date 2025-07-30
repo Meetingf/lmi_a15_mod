@@ -133,7 +133,7 @@ jobs:
       - name: Build Kernel
         run: |
           cd $KERNEL_SOURCE
-          sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$TOOLCHAIN_DIR/proton-clang/bin|' build.sh
+          sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$TOOLCHAIN_DIR/clang/proton-clang/bin|' build.sh
           DEVICE="${{ github.event.inputs.target_devices }}"
           KSU_enable="${{ github.event.inputs.kernelsu_enable }}"
           VERSION="${{ github.event.inputs.kernel_version }}"
