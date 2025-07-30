@@ -113,7 +113,7 @@ jobs:
           cd $HOME/proton-clang
           wget https://github.com/kdrag0n/proton-clang/archive/refs/tags/20210522.zip
           unzip 20210522.zip
-          rm 20210522.zip
+          rm proton-clang-20210522/bin/ld 20210522.zip
 
       - name: Cache ccache
         uses: actions/cache@v4
