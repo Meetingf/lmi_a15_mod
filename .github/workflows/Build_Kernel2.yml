@@ -166,12 +166,14 @@ jobs:
           fi
 
           bash build.sh "$DEVICE" "$KSU_enable"
+          mkdir -p $WORKDIR/out
+          mv ./Kernel_*.zip $WORKDIR/out
 
       - name: 📤 Upload compilation results (上传编译结果)
         uses: actions/upload-artifact@v4
         with:
           name: Kernel-${{ matrix.device }}
-          path: $KERNEL_SOURCE/Kernel_*.zip
+          path: $WORKDIR/out/*.zip
 
   release:
     needs: build
