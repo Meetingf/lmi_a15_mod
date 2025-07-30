@@ -99,7 +99,7 @@ jobs:
           remove-haskell: "true"
           remove-codeql: "true"
 
-      - name: Install Dependencies
+      - name: 📦 Installation of dependencies (安装依赖)
         run: |
           sudo apt-get update -y 
           sudo apt-get install -y \
@@ -107,7 +107,7 @@ jobs:
           cpio libssl-dev libncurses-dev gcc \
           python3 python3-pip ccache
 
-      - name: Download Proton Clang Toolchain
+      - name: 📥 Download the compilation toolchain (下载编译工具链)
         run: |
           mkdir -p $HOME/proton-clang
           cd $HOME/proton-clang
@@ -115,7 +115,7 @@ jobs:
           unzip 20210522.zip
           rm proton-clang-20210522/bin/ld 20210522.zip
 
-      - name: Cache ccache
+      - name: 📥 Restore ccache (恢复 ccache 缓存)
         uses: actions/cache@v4
         with:
           path: ~/.cache/ccache_mikernel
@@ -129,7 +129,7 @@ jobs:
           git clone https://github.com/liyafe1997/kernel_xiaomi_sm8250_mod.git --depth=1 $KERNEL_SOURCE
           echo "✅ Kernel source code cloning complete (内核源码克隆完成)"
 
-      - name: Build Kernel
+      - name: 🔨 Build the kernel (构建内核)
         run: |
           cd $KERNEL_SOURCE
           #sed -i 's|TOOLCHAIN_PATH=\$HOME/toolchain/proton-clang/bin|TOOLCHAIN_PATH=$TOOLCHAIN_DIR/clang/proton-clang/bin|' build.sh
@@ -167,17 +167,11 @@ jobs:
 
           bash build.sh "$DEVICE" "$KSU_enable"
 
-      - name: Set Kernel Path
-        run: |
-          tar -czvf Kernel_All.tar.gz Kernel_*
-          KernelPath=$(pwd)/Kernel_All.tar.gz
-          echo "KernelPath=$KernelPath" >> $GITHUB_ENV
-      
-      - name: Upload Kernel
+      - name: 📤 Upload compilation results (上传编译结果)
         uses: actions/upload-artifact@v4
         with:
           name: Kernel-${{ matrix.device }}
-          path: ${{ env.KernelPath }}
+          path: $KERNEL_SOURCE/Kernel_*.zip
 
   release:
     needs: build
